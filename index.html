@@ -439,7 +439,9 @@
 
         // Parse SRT file
         function parseSRT(content) {
-            const blocks = content.trim().split(/\n\n+/);
+            // Normalize line endings: convert \r\n to \n, and standalone \r to \n
+            const normalized = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+            const blocks = normalized.trim().split(/\n\n+/);
             const parsed = [];
 
             for (const block of blocks) {
