@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subtitle Viewer - Language Learning</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #fff;
+            font-weight: 300;
+        }
+
+        /* Upload Section */
+        .upload-section {
+            background: #16213e;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 2px dashed #4a5568;
+            transition: border-color 0.3s;
+        }
+
+        .upload-section:hover {
+            border-color: #667eea;
+        }
+
+        .upload-section h2 {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            font-weight: 400;
+        }
+
+        .file-inputs {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .file-input-wrapper {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .file-input-wrapper label {
+            display: block;
+            margin-bottom: 8px;
+            color: #a0aec0;
+            font-size: 0.9rem;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            background: #0f3460;
+            border: 1px solid #4a5568;
+            border-radius: 8px;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .file-input-wrapper input[type="file"]::-webkit-file-upload-button {
+            background: #667eea;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .file-status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .file-status.success {
+            display: block;
+            background: #1d4044;
+            color: #68d391;
+        }
+
+        .file-status.error {
+            display: block;
+            background: #442424;
+            color: #fc8181;
+        }
+
+        /* Subtitle Display */
+        .subtitle-section {
+            background: #16213e;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            display: none;
+        }
+
+        .subtitle-section.active {
+            display: block;
+        }
+
+        .subtitle-container {
+            height: 400px;
+            overflow-y: auto;
+            padding: 20px;
+            background: #0f3460;
+            border-radius: 8px;
+            scroll-behavior: smooth;
+        }
+
+        .subtitle-line {
+            padding: 15px 20px;
+            margin: 8px 0;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            font-size: 1.3rem;
+            line-height: 1.6;
+            border-left: 4px solid transparent;
+        }
+
+        .subtitle-line:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .subtitle-line.past {
+            color: #718096;
+        }
+
+        .subtitle-line.current {
+            background: rgba(102, 126, 234, 0.2);
+            color: #f6ad55;
+            border-left-color: #f6ad55;
+            font-weight: 500;
+        }
+
+        .subtitle-line.future {
+            color: #e2e8f0;
+        }
+
+        .subtitle-timestamp {
+            font-size: 0.75rem;
+            color: #4a5568;
+            margin-bottom: 5px;
+            font-family: monospace;
+        }
+
+        /* Audio Player */
+        .audio-section {
+            background: #16213e;
+            border-radius: 12px;
+            padding: 30px;
+            display: none;
+        }
+
+        .audio-section.active {
+            display: block;
+        }
+
+        .progress-container {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #0f3460;
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 4px;
+            width: 0%;
+            position: relative;
+        }
+
+        .progress-handle {
+            width: 16px;
+            height: 16px;
+            background: #fff;
+            border-radius: 50%;
+            position: absolute;
+            right: -8px;
+            top: 50%;
+            transform: translateY(-50%);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .time-display {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: #a0aec0;
+            margin-top: 8px;
+            font-family: monospace;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .control-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            padding: 15px;
+            border-radius: 50%;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .control-btn.play-pause {
+            background: #667eea;
+            width: 60px;
+            height: 60px;
+        }
+
+        .control-btn.play-pause:hover {
+            background: #5a67d8;
+            transform: scale(1.05);
+        }
+
+        .control-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        .control-btn.play-pause svg {
+            width: 28px;
+            height: 28px;
+        }
+
+        /* Speed Control */
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        .speed-control label {
+            color: #a0aec0;
+            font-size: 0.9rem;
+        }
+
+        .speed-control select {
+            background: #0f3460;
+            color: #fff;
+            border: 1px solid #4a5568;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        /* Scrollbar styling */
+        .subtitle-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .subtitle-container::-webkit-scrollbar-track {
+            background: #0f3460;
+            border-radius: 4px;
+        }
+
+        .subtitle-container::-webkit-scrollbar-thumb {
+            background: #4a5568;
+            border-radius: 4px;
+        }
+
+        .subtitle-container::-webkit-scrollbar-thumb:hover {
+            background: #667eea;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #718096;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Subtitle Viewer</h1>
+
+        <!-- Upload Section -->
+        <div class="upload-section">
+            <h2>Upload Files</h2>
+            <div class="file-inputs">
+                <div class="file-input-wrapper">
+                    <label for="audio-file">Audio File (MP3, WAV, OGG)</label>
+                    <input type="file" id="audio-file" accept=".mp3,.wav,.ogg,audio/*">
+                </div>
+                <div class="file-input-wrapper">
+                    <label for="subtitle-file">Subtitle File (SRT)</label>
+                    <input type="file" id="subtitle-file" accept=".srt">
+                </div>
+            </div>
+            <div id="file-status" class="file-status"></div>
+        </div>
+
+        <!-- Subtitle Display -->
+        <div class="subtitle-section" id="subtitle-section">
+            <div class="subtitle-container" id="subtitle-container">
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M9,13V19H7V13H9M15,15V19H17V15H15M11,11V19H13V11H11Z"/>
+                    </svg>
+                    <p>Upload an audio and subtitle file to get started</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Audio Player -->
+        <div class="audio-section" id="audio-section">
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar">
+                    <div class="progress-fill" id="progress-fill">
+                        <div class="progress-handle"></div>
+                    </div>
+                </div>
+                <div class="time-display">
+                    <span id="current-time">0:00</span>
+                    <span id="total-time">0:00</span>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="control-btn" id="rewind-btn" title="Rewind 5s">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12.5,3C17.15,3 21.08,6.03 22.47,10.22L20.1,11C19.05,7.81 16.04,5.5 12.5,5.5C10.54,5.5 8.77,6.22 7.38,7.38L10,10H3V3L5.6,5.6C7.45,4 9.85,3 12.5,3M10,12V22H8V14H6V12H10M18,14V20C18,21.11 17.11,22 16,22H14A2,2 0 0,1 12,20V14A2,2 0 0,1 14,12H16C17.11,12 18,12.9 18,14M14,14V20H16V14H14Z"/>
+                    </svg>
+                </button>
+
+                <button class="control-btn play-pause" id="play-pause-btn" title="Play/Pause">
+                    <svg id="play-icon" viewBox="0 0 24 24">
+                        <path d="M8,5.14V19.14L19,12.14L8,5.14Z"/>
+                    </svg>
+                    <svg id="pause-icon" viewBox="0 0 24 24" style="display:none">
+                        <path d="M14,19H18V5H14M6,19H10V5H6V19Z"/>
+                    </svg>
+                </button>
+
+                <button class="control-btn" id="forward-btn" title="Forward 5s">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M11.5,3C6.85,3 2.92,6.03 1.53,10.22L3.9,11C4.95,7.81 7.96,5.5 11.5,5.5C13.46,5.5 15.23,6.22 16.62,7.38L14,10H21V3L18.4,5.6C16.55,4 14.15,3 11.5,3M10,12V22H8V14H6V12H10M18,14V20C18,21.11 17.11,22 16,22H14A2,2 0 0,1 12,20V14A2,2 0 0,1 14,12H16C17.11,12 18,12.9 18,14M14,14V20H16V14H14Z"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="speed-control">
+                <label for="speed-select">Playback Speed:</label>
+                <select id="speed-select">
+                    <option value="0.5">0.5x</option>
+                    <option value="0.75">0.75x</option>
+                    <option value="1" selected>1x</option>
+                    <option value="1.25">1.25x</option>
+                    <option value="1.5">1.5x</option>
+                    <option value="2">2x</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <audio id="audio-player"></audio>
+
+    <script>
+        // DOM Elements
+        const audioFileInput = document.getElementById('audio-file');
+        const subtitleFileInput = document.getElementById('subtitle-file');
+        const fileStatus = document.getElementById('file-status');
+        const subtitleSection = document.getElementById('subtitle-section');
+        const subtitleContainer = document.getElementById('subtitle-container');
+        const audioSection = document.getElementById('audio-section');
+        const audioPlayer = document.getElementById('audio-player');
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const playIcon = document.getElementById('play-icon');
+        const pauseIcon = document.getElementById('pause-icon');
+        const rewindBtn = document.getElementById('rewind-btn');
+        const forwardBtn = document.getElementById('forward-btn');
+        const progressBar = document.getElementById('progress-bar');
+        const progressFill = document.getElementById('progress-fill');
+        const currentTimeDisplay = document.getElementById('current-time');
+        const totalTimeDisplay = document.getElementById('total-time');
+        const speedSelect = document.getElementById('speed-select');
+
+        // State
+        let subtitles = [];
+        let currentSubtitleIndex = -1;
+        let audioLoaded = false;
+        let subtitlesLoaded = false;
+
+        // Parse SRT file
+        function parseSRT(content) {
+            const blocks = content.trim().split(/\n\n+/);
+            const parsed = [];
+
+            for (const block of blocks) {
+                const lines = block.split('\n');
+                if (lines.length < 2) continue;
+
+                // Find the timestamp line
+                let timestampLineIndex = -1;
+                for (let i = 0; i < lines.length; i++) {
+                    if (lines[i].includes('-->')) {
+                        timestampLineIndex = i;
+                        break;
+                    }
+                }
+
+                if (timestampLineIndex === -1) continue;
+
+                const timestampLine = lines[timestampLineIndex];
+                const match = timestampLine.match(/(\d{2}:\d{2}:\d{2}[,\.]\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2}[,\.]\d{3})/);
+
+                if (!match) continue;
+
+                const startTime = parseTimestamp(match[1]);
+                const endTime = parseTimestamp(match[2]);
+                const text = lines.slice(timestampLineIndex + 1).join('\n').trim();
+
+                if (text) {
+                    parsed.push({
+                        startTime,
+                        endTime,
+                        text,
+                        startFormatted: formatTime(startTime),
+                        endFormatted: formatTime(endTime)
+                    });
+                }
+            }
+
+            return parsed;
+        }
+
+        // Parse timestamp to seconds
+        function parseTimestamp(timestamp) {
+            const normalized = timestamp.replace(',', '.');
+            const parts = normalized.split(':');
+            const hours = parseInt(parts[0], 10);
+            const minutes = parseInt(parts[1], 10);
+            const seconds = parseFloat(parts[2]);
+            return hours * 3600 + minutes * 60 + seconds;
+        }
+
+        // Format time for display
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Render subtitles
+        function renderSubtitles() {
+            if (subtitles.length === 0) {
+                subtitleContainer.innerHTML = `
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M9,13V19H7V13H9M15,15V19H17V15H15M11,11V19H13V11H11Z"/>
+                        </svg>
+                        <p>No subtitles loaded</p>
+                    </div>
+                `;
+                return;
+            }
+
+            subtitleContainer.innerHTML = subtitles.map((sub, index) => `
+                <div class="subtitle-line future" data-index="${index}" data-start="${sub.startTime}">
+                    <div class="subtitle-timestamp">${sub.startFormatted} - ${sub.endFormatted}</div>
+                    <div class="subtitle-text">${sub.text}</div>
+                </div>
+            `).join('');
+
+            // Add click handlers to jump to subtitle
+            subtitleContainer.querySelectorAll('.subtitle-line').forEach(el => {
+                el.addEventListener('click', () => {
+                    const startTime = parseFloat(el.dataset.start);
+                    if (audioLoaded) {
+                        audioPlayer.currentTime = startTime;
+                    }
+                });
+            });
+        }
+
+        // Update subtitle highlighting based on current time
+        function updateSubtitleHighlight() {
+            const currentTime = audioPlayer.currentTime;
+            let newIndex = -1;
+
+            // Find current subtitle
+            for (let i = 0; i < subtitles.length; i++) {
+                if (currentTime >= subtitles[i].startTime && currentTime < subtitles[i].endTime) {
+                    newIndex = i;
+                    break;
+                }
+                // If we're between subtitles, show the previous one as current if close
+                if (currentTime < subtitles[i].startTime) {
+                    if (i > 0 && currentTime - subtitles[i-1].endTime < 0.5) {
+                        newIndex = i - 1;
+                    }
+                    break;
+                }
+            }
+
+            // If past all subtitles, check if we should highlight the last one
+            if (newIndex === -1 && subtitles.length > 0) {
+                const lastSub = subtitles[subtitles.length - 1];
+                if (currentTime >= lastSub.startTime && currentTime < lastSub.endTime + 0.5) {
+                    newIndex = subtitles.length - 1;
+                }
+            }
+
+            // Update classes
+            const lines = subtitleContainer.querySelectorAll('.subtitle-line');
+            lines.forEach((line, index) => {
+                line.classList.remove('past', 'current', 'future');
+                if (index < newIndex || (newIndex === -1 && currentTime > subtitles[index]?.endTime)) {
+                    line.classList.add('past');
+                } else if (index === newIndex) {
+                    line.classList.add('current');
+                } else {
+                    line.classList.add('future');
+                }
+            });
+
+            // Scroll to current subtitle
+            if (newIndex !== currentSubtitleIndex && newIndex !== -1) {
+                currentSubtitleIndex = newIndex;
+                const currentLine = subtitleContainer.querySelector(`[data-index="${newIndex}"]`);
+                if (currentLine) {
+                    const containerRect = subtitleContainer.getBoundingClientRect();
+                    const lineRect = currentLine.getBoundingClientRect();
+                    const scrollTop = currentLine.offsetTop - subtitleContainer.offsetTop - (containerRect.height / 3);
+                    subtitleContainer.scrollTo({
+                        top: scrollTop,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+        }
+
+        // Update progress bar
+        function updateProgress() {
+            if (audioPlayer.duration) {
+                const percent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+                progressFill.style.width = `${percent}%`;
+                currentTimeDisplay.textContent = formatTime(audioPlayer.currentTime);
+            }
+        }
+
+        // File input handlers
+        audioFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const url = URL.createObjectURL(file);
+                audioPlayer.src = url;
+                audioLoaded = true;
+                updateStatus();
+            }
+        });
+
+        subtitleFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    subtitles = parseSRT(event.target.result);
+                    subtitlesLoaded = true;
+                    renderSubtitles();
+                    updateStatus();
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        function updateStatus() {
+            if (audioLoaded && subtitlesLoaded) {
+                fileStatus.textContent = 'Files loaded successfully! Click play to start.';
+                fileStatus.className = 'file-status success';
+                subtitleSection.classList.add('active');
+                audioSection.classList.add('active');
+            } else if (audioLoaded || subtitlesLoaded) {
+                const missing = !audioLoaded ? 'audio' : 'subtitle';
+                fileStatus.textContent = `Please also upload a ${missing} file.`;
+                fileStatus.className = 'file-status';
+                fileStatus.style.display = 'block';
+                fileStatus.style.background = '#2d3748';
+                fileStatus.style.color = '#a0aec0';
+            }
+        }
+
+        // Audio player event listeners
+        audioPlayer.addEventListener('loadedmetadata', () => {
+            totalTimeDisplay.textContent = formatTime(audioPlayer.duration);
+        });
+
+        audioPlayer.addEventListener('timeupdate', () => {
+            updateProgress();
+            updateSubtitleHighlight();
+        });
+
+        audioPlayer.addEventListener('play', () => {
+            playIcon.style.display = 'none';
+            pauseIcon.style.display = 'block';
+        });
+
+        audioPlayer.addEventListener('pause', () => {
+            playIcon.style.display = 'block';
+            pauseIcon.style.display = 'none';
+        });
+
+        // Control buttons
+        playPauseBtn.addEventListener('click', () => {
+            if (audioPlayer.paused) {
+                audioPlayer.play();
+            } else {
+                audioPlayer.pause();
+            }
+        });
+
+        rewindBtn.addEventListener('click', () => {
+            audioPlayer.currentTime = Math.max(0, audioPlayer.currentTime - 5);
+        });
+
+        forwardBtn.addEventListener('click', () => {
+            audioPlayer.currentTime = Math.min(audioPlayer.duration, audioPlayer.currentTime + 5);
+        });
+
+        // Progress bar click to seek
+        progressBar.addEventListener('click', (e) => {
+            const rect = progressBar.getBoundingClientRect();
+            const percent = (e.clientX - rect.left) / rect.width;
+            audioPlayer.currentTime = percent * audioPlayer.duration;
+        });
+
+        // Speed control
+        speedSelect.addEventListener('change', () => {
+            audioPlayer.playbackRate = parseFloat(speedSelect.value);
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT') return;
+
+            switch(e.code) {
+                case 'Space':
+                    e.preventDefault();
+                    playPauseBtn.click();
+                    break;
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    rewindBtn.click();
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    forwardBtn.click();
+                    break;
+            }
+        });
+    </script>
+</body>
+</html>
