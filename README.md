@@ -2,6 +2,8 @@
 
 A locally hosted web app for language learning that syncs audio playback with subtitle display.
 
+![Image of the application ruinning in a browser](pic.png)
+
 ## Features
 
 - Upload audio files (MP3, WAV, OGG) and subtitle files (SRT)
@@ -42,6 +44,9 @@ Then open `http://localhost:8000` in your browser.
 Simply open `index.html` directly in your browser (some browsers may restrict file access).
 
 ## Example Files
+
+From: https://nihongoconteppei.com
+Teppei-sensei's courses are very useful and I created this app to help me learn faster with them!
 
 The repository includes example files to test the app:
 - `example.mp3` - Japanese language learning podcast
