@@ -28,9 +28,9 @@
         }
 
         [data-theme="sage"] {
-            --bg-primary: #1e2820;
-            --bg-secondary: #243028;
-            --bg-tertiary: #1a2620;
+            --bg-primary: #1a211c;
+            --bg-secondary: #232b25;
+            --bg-tertiary: #2d382f;
             --accent: #7a9b7a;
             --accent-hover: #6a8b6a;
             --accent-gradient: linear-gradient(90deg, #7a9b7a, #5a8a6a);
@@ -48,9 +48,9 @@
         }
 
         [data-theme="burnt"] {
-            --bg-primary: #2a1c1c;
-            --bg-secondary: #3a2424;
-            --bg-tertiary: #2e1a1a;
+            --bg-primary: #1f1616;
+            --bg-secondary: #2a1e1e;
+            --bg-tertiary: #382828;
             --accent: #c4654a;
             --accent-hover: #b45540;
             --accent-gradient: linear-gradient(90deg, #c4654a, #a04530);
@@ -169,6 +169,12 @@
             display: block;
             background: var(--error-bg);
             color: var(--error-text);
+        }
+
+        .file-status.pending {
+            display: block;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
         }
 
         /* Subtitle Display */
@@ -768,10 +774,8 @@
             } else if (audioLoaded || subtitlesLoaded) {
                 const missing = !audioLoaded ? 'audio' : 'subtitle';
                 fileStatus.textContent = `Please also upload a ${missing} file.`;
-                fileStatus.className = 'file-status';
+                fileStatus.className = 'file-status pending';
                 fileStatus.style.display = 'block';
-                fileStatus.style.background = '#2d3748';
-                fileStatus.style.color = '#a0aec0';
             }
         }
 
