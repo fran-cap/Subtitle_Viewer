@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Subtitle Viewer - Language Learning</title>
+    <link id="favicon" rel="icon" type="image/x-icon" href="icoblu.ico">
     <style>
         /* Theme definitions */
         :root {
@@ -535,6 +536,13 @@
             return null;
         }
 
+        // Favicon mapping for each theme
+        const themeFavicons = {
+            'blue': 'icoblu.ico',
+            'sage': 'icogrn.ico',
+            'burnt': 'icored.ico'
+        };
+
         // Apply theme
         function setTheme(theme) {
             if (theme === 'blue') {
@@ -544,6 +552,12 @@
             }
             themeSelect.value = theme;
             setCookie('theme', theme);
+
+            // Update favicon to match theme
+            const favicon = document.getElementById('favicon');
+            if (favicon && themeFavicons[theme]) {
+                favicon.href = themeFavicons[theme];
+            }
         }
 
         // Load saved theme on page load
